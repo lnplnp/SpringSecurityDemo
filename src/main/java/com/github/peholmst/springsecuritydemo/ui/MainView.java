@@ -21,196 +21,192 @@ import com.vaadin.terminal.Sizeable;
 import com.vaadin.terminal.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.SplitPanel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Button.ClickEvent;
 
 /**
  * TODO Document me!
+ * 
  * @author petter
  * 
  */
-public class MainView extends AbstractView implements CategoryBrowser.CategorySelectionListener {
+public class MainView extends AbstractView implements
+    CategoryBrowser.CategorySelectionListener {
 
-	private static final long serialVersionUID = -8421758733452231380L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private final CategoryBrowser categoryBrowser;
 
-	private final CategoryBrowser categoryBrowser;
-	
-	public MainView(SpringSecurityDemoApp application, CategoryService categoryService) {
-		super(application);
-		categoryBrowser = new CategoryBrowser(categoryService, application);
-		categoryBrowser.addListener(this);
-		init();
-	}
-	
-	protected void init() {
-		final VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
+  public MainView(SpringSecurityDemoApp application,
+      CategoryService categoryService) {
+    super(application);
+    categoryBrowser = new CategoryBrowser(categoryService, application);
+    categoryBrowser.addListener(this);
+    init();
+  }
 
-		/*
-		 * The header is shown on top of the window and shows information about
-		 * the application and the current user.
-		 */
-		final Component header = createHeader();
-		mainLayout.addComponent(header);
+  /**
+   * TODO Document me!
+   * 
+   * @return
+   */
+  @SuppressWarnings("serial")
+  protected Component createHeader() {
+    final HorizontalLayout header = new HorizontalLayout();
+    header.setMargin(true);
+    header.setWidth("100%");
 
-		/*
-		 * The split panel will contain the component that actually make the
-		 * application usable.
-		 */
+    /*
+     * Header label will contain the name and version of the application.
+     */
+    final Label headerLabel = new Label(getApplication().getMessage(
+        "app.title", getApplication().getVersion()));
+    headerLabel.setStyleName("appHeaderText");
+    header.addComponent(headerLabel);
+    header.setStyleName("appHeader");
+    header.setExpandRatio(headerLabel, 1.0f);
+    header.setComponentAlignment(headerLabel, Alignment.MIDDLE_LEFT);
 
-		final SplitPanel splitPanel = new SplitPanel(
-				SplitPanel.ORIENTATION_HORIZONTAL);
-		splitPanel.setSizeFull();
-		mainLayout.addComponent(splitPanel);
-		mainLayout.setExpandRatio(splitPanel, 1.0f);
+    /*
+     * User links contains information about the current user and a button for
+     * logging out.
+     */
+    final HorizontalLayout userLinks = new HorizontalLayout();
+    userLinks.setStyleName("appHeaderUserLinks");
+    userLinks.setSpacing(true);
 
-		splitPanel.addComponent(categoryBrowser.getComponent());
+    /*
+     * The user label contains the name of the current user.
+     */
+    final Label userLabel = new Label(getApplication().getMessage(
+        "main.currentlyLoggedIn", getApplication().getUser().getName()),
+        Label.CONTENT_XHTML);
+    userLinks.addComponent(userLabel);
+    userLinks.setComponentAlignment(userLabel, Alignment.MIDDLE_LEFT);
+    userLabel.setSizeUndefined();
 
-		final Component ticketBrowser = createTicketBrowser();
-		splitPanel.addComponent(ticketBrowser);
+    /*
+     * The logout button closes the application, effectively logging the user
+     * out.
+     */
+    final Button logoutButton = new Button(getApplication().getMessage(
+        "main.logout.caption"), new Button.ClickListener() {
 
-		splitPanel.setSplitPosition(25, Sizeable.UNITS_PERCENTAGE);
+      @Override
+      public void buttonClick(ClickEvent event) {
+        // TODO Add confirmation
+        getApplication().close();
+      }
+    });
+    logoutButton.setDescription(getApplication()
+        .getMessage("main.logout.descr"));
+    logoutButton.setStyleName("small");
+    userLinks.addComponent(logoutButton);
+    userLinks.setComponentAlignment(logoutButton, Alignment.MIDDLE_RIGHT);
 
-		setCompositionRoot(mainLayout);
-	}
-	
-	@Override
-	public void selectedCategoryChanged(Category newCategory) {
-		// TODO Update the ticket browser!
-		getWindow().showNotification("Selected category: " + newCategory);		
-	}
+    header.addComponent(userLinks);
+    header.setComponentAlignment(userLinks, Alignment.MIDDLE_RIGHT);
+    return header;
+  }
 
-	// TODO Remove this - For demonstrational purposes only
-/*	private CategoryService createCategoryServiceStub() {
-		CategoryService service = new CategoryServiceStub();
-		for (int i = 1; i <= 5; ++i) {
-			Category r = new Category();
-			r.setName("Root" + i);
-			service.saveCategory(r);
-			for (int j = 1; j <= 5; ++j) {
-				Category c = new Category();
-				c.setName("Child" + i + "_" + j);
-				c.setParent(r);
-				service.saveCategory(c);
-			}
-		}
-		return service;
-	}*/
+  /**
+   * TODO Document me!
+   * 
+   * @return
+   */
+  protected Component createTicketBrowser() {
+    final HorizontalLayout toolbar = new HorizontalLayout();
+    toolbar.setSpacing(true);
+    toolbar.setWidth("100%");
 
-	/**
-	 * TODO Document me!
-	 * 
-	 * @return
-	 */
-	protected Component createTicketBrowser() {
-		final HorizontalLayout toolbar = new HorizontalLayout();
-		toolbar.setSpacing(true);
-		toolbar.setWidth("100%");
+    final Button refreshButton = new Button(getApplication().getMessage(
+        "tickets.refresh.caption"));
+    refreshButton.setIcon(new ThemeResource("icons/16/refresh.png"));
+    refreshButton.setStyleName("small");
+    refreshButton.setDescription(getApplication().getMessage(
+        "tickets.refresh.descr"));
+    toolbar.addComponent(refreshButton);
+    toolbar.setComponentAlignment(refreshButton, Alignment.MIDDLE_LEFT);
 
-		final Button refreshButton = new Button(getApplication().getMessage(
-				"tickets.refresh.caption"));
-		refreshButton.setIcon(new ThemeResource("icons/16/refresh.png"));
-		refreshButton.setStyleName("small");
-		refreshButton.setDescription(getApplication().getMessage(
-				"tickets.refresh.descr"));
-		toolbar.addComponent(refreshButton);
-		toolbar.setComponentAlignment(refreshButton, Alignment.MIDDLE_LEFT);
+    final Button addButton = new Button(getApplication().getMessage(
+        "tickets.add.caption"));
+    addButton.setIcon(new ThemeResource("icons/16/add.png"));
+    addButton.setStyleName("small");
+    addButton.setDescription(getApplication().getMessage("tickets.add.descr"));
+    toolbar.addComponent(addButton);
+    toolbar.setComponentAlignment(addButton, Alignment.MIDDLE_RIGHT);
 
-		final Button addButton = new Button(getApplication().getMessage(
-				"tickets.add.caption"));
-		addButton.setIcon(new ThemeResource("icons/16/add.png"));
-		addButton.setStyleName("small");
-		addButton.setDescription(getApplication().getMessage(
-				"tickets.add.descr"));
-		toolbar.addComponent(addButton);
-		toolbar.setComponentAlignment(addButton, Alignment.MIDDLE_RIGHT);
+    final SplitPanel splitPanel = new SplitPanel();
+    splitPanel.setSizeFull();
 
-		final SplitPanel splitPanel = new SplitPanel();
-		splitPanel.setSizeFull();
+    final Table ticketsTable = new Table();
+    ticketsTable.setSizeFull();
+    splitPanel.addComponent(ticketsTable);
 
-		final Table ticketsTable = new Table();
-		ticketsTable.setSizeFull();
-		splitPanel.addComponent(ticketsTable);
+    splitPanel.addComponent(new Label(
+        "The form for editing tickets will show up here"));
 
-		splitPanel.addComponent(new Label(
-				"The form for editing tickets will show up here"));
+    final VerticalLayout browser = new VerticalLayout();
+    browser.setSizeFull();
+    browser.addComponent(toolbar);
+    browser.addComponent(splitPanel);
+    browser.setExpandRatio(splitPanel, 1.0f);
 
-		final VerticalLayout browser = new VerticalLayout();
-		browser.setSizeFull();
-		browser.addComponent(toolbar);
-		browser.addComponent(splitPanel);
-		browser.setExpandRatio(splitPanel, 1.0f);
+    return browser;
+  }
 
-		return browser;
-	}
+  // TODO Remove this - For demonstrational purposes only
+  /*
+   * private CategoryService createCategoryServiceStub() { CategoryService
+   * service = new CategoryServiceStub(); for (int i = 1; i <= 5; ++i) {
+   * Category r = new Category(); r.setName("Root" + i);
+   * service.saveCategory(r); for (int j = 1; j <= 5; ++j) { Category c = new
+   * Category(); c.setName("Child" + i + "_" + j); c.setParent(r);
+   * service.saveCategory(c); } } return service; }
+   */
 
-	/**
-	 * TODO Document me!
-	 * 
-	 * @return
-	 */
-	@SuppressWarnings("serial")
-	protected Component createHeader() {
-		final HorizontalLayout header = new HorizontalLayout();
-		header.setMargin(true);
-		header.setWidth("100%");
+  protected void init() {
+    final VerticalLayout mainLayout = new VerticalLayout();
+    mainLayout.setSizeFull();
 
-		/*
-		 * Header label will contain the name and version of the application.
-		 */
-		final Label headerLabel = new Label(getApplication().getMessage(
-				"app.title", getApplication().getVersion()));
-		headerLabel.setStyleName("appHeaderText");
-		header.addComponent(headerLabel);
-		header.setStyleName("appHeader");
-		header.setExpandRatio(headerLabel, 1.0f);
-		header.setComponentAlignment(headerLabel, Alignment.MIDDLE_LEFT);
+    /*
+     * The header is shown on top of the window and shows information about the
+     * application and the current user.
+     */
+    final Component header = createHeader();
+    mainLayout.addComponent(header);
 
-		/*
-		 * User links contains information about the current user and a button
-		 * for logging out.
-		 */
-		final HorizontalLayout userLinks = new HorizontalLayout();
-		userLinks.setStyleName("appHeaderUserLinks");
-		userLinks.setSpacing(true);
+    /*
+     * The split panel will contain the component that actually make the
+     * application usable.
+     */
 
-		/*
-		 * The user label contains the name of the current user.
-		 */
-		final Label userLabel = new Label(
-				getApplication().getMessage("main.currentlyLoggedIn",
-						getApplication().getUser().getName()),
-				Label.CONTENT_XHTML);
-		userLinks.addComponent(userLabel);
-		userLinks.setComponentAlignment(userLabel, Alignment.MIDDLE_LEFT);
-		userLabel.setSizeUndefined();
+    final SplitPanel splitPanel = new SplitPanel(
+        SplitPanel.ORIENTATION_HORIZONTAL);
+    splitPanel.setSizeFull();
+    mainLayout.addComponent(splitPanel);
+    mainLayout.setExpandRatio(splitPanel, 1.0f);
 
-		/*
-		 * The logout button closes the application, effectively logging the
-		 * user out.
-		 */
-		final Button logoutButton = new Button(getApplication().getMessage(
-				"main.logout.caption"), new Button.ClickListener() {
+    splitPanel.addComponent(categoryBrowser.getComponent());
 
-			@Override
-			public void buttonClick(ClickEvent event) {
-				// TODO Add confirmation
-				getApplication().close();
-			}
-		});
-		logoutButton.setDescription(getApplication().getMessage(
-				"main.logout.descr"));
-		logoutButton.setStyleName("small");
-		userLinks.addComponent(logoutButton);
-		userLinks.setComponentAlignment(logoutButton, Alignment.MIDDLE_RIGHT);
+    final Component ticketBrowser = createTicketBrowser();
+    splitPanel.addComponent(ticketBrowser);
 
-		header.addComponent(userLinks);
-		header.setComponentAlignment(userLinks, Alignment.MIDDLE_RIGHT);
-		return header;
-	}
+    splitPanel.setSplitPosition(25, Sizeable.UNITS_PERCENTAGE);
+
+    setCompositionRoot(mainLayout);
+  }
+
+  @Override
+  public void selectedCategoryChanged(Category newCategory) {
+    // TODO Update the ticket browser!
+    getWindow().showNotification("Selected category: " + newCategory);
+  }
 }

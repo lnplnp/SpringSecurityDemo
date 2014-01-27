@@ -26,88 +26,97 @@ import javax.persistence.ManyToOne;
 @Entity
 public class Category extends AbstractEntity {
 
-	private static final long serialVersionUID = -3513404373476593420L;
+  private static final long serialVersionUID = -3513404373476593420L;
 
-	private String name;
+  private String name;
 
-	private String description;
+  private String description;
 
-	@ManyToOne
-	private Category parent;
+  @ManyToOne
+  private Category parent;
 
-	public Category() {
-		this("", "");
-	}
-	
-	public Category(String name, String description) {
-		this(name, description, null);
-	}
-	
-	public Category(String name, String description, Category parent) {
-		this.name = name;
-		this.description = description;
-		this.parent = parent;
-	}
-	
-	public String getName() {
-		return name;
-	}
+  public Category() {
+    this("", "");
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public Category(String name, String description) {
+    this(name, description, null);
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public Category(String name, String description, Category parent) {
+    this.name = name;
+    this.description = description;
+    this.parent = parent;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    Category other = (Category) obj;
+    if (description == null) {
+      if (other.description != null) {
+        return false;
+      }
+    } else if (!description.equals(other.description)) {
+      return false;
+    }
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+    if (parent == null) {
+      if (other.parent != null) {
+        return false;
+      }
+    } else if (!parent.equals(other.parent)) {
+      return false;
+    }
+    return true;
+  }
 
-	public Category getParent() {
-		return parent;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public void setParent(Category parent) {
-		this.parent = parent;
-	}
+  public String getName() {
+    return name;
+  }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
-		return result;
-	}
+  public Category getParent() {
+    return parent;
+  }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Category other = (Category) obj;
-		if (description == null) {
-			if (other.description != null)
-				return false;
-		} else if (!description.equals(other.description))
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		} else if (!parent.equals(other.parent))
-			return false;
-		return true;
-	}
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result
+        + (description == null ? 0 : description.hashCode());
+    result = prime * result + (name == null ? 0 : name.hashCode());
+    result = prime * result + (parent == null ? 0 : parent.hashCode());
+    return result;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setParent(Category parent) {
+    this.parent = parent;
+  }
 }

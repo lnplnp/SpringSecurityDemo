@@ -31,59 +31,59 @@ import javax.persistence.Version;
 @MappedSuperclass
 public abstract class AbstractEntity implements Serializable {
 
-	private static final long serialVersionUID = 992875744546231123L;
+  private static final long serialVersionUID = 992875744546231123L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-	@Version
-	private Long version;
+  @Version
+  private Long version;
 
-	/**
-	 * Creates a new <code>AbstractEntity</code>.
-	 */
-	public AbstractEntity() {
-	}
+  /**
+   * Creates a new <code>AbstractEntity</code>.
+   */
+  public AbstractEntity() {
+  }
 
-	/**
-	 * Gets the ID of this entity.
-	 * 
-	 * @return the ID, ore <code>null</code> if the entity has not yet been
-	 *         persisted.
-	 */
-	public Long getId() {
-		return id;
-	}
+  /**
+   * Gets the ID of this entity.
+   * 
+   * @return the ID, ore <code>null</code> if the entity has not yet been
+   *         persisted.
+   */
+  public Long getId() {
+    return id;
+  }
 
-	/**
-	 * Sets the ID of this entity.
-	 * 
-	 * @param id
-	 *            the ID to set.
-	 */
-	public void setId(Long id) {
-		this.id = id;
-	}
+  /**
+   * Gets the version of this entity that may be used for optimistic transaction
+   * locking.
+   * 
+   * @return the version, may be <code>null</code> if optimistic transaction
+   *         locking is not used or the entity has not yet been persisted.
+   */
+  public Long getVersion() {
+    return version;
+  }
 
-	/**
-	 * Gets the version of this entity that may be used for optimistic
-	 * transaction locking.
-	 * 
-	 * @return the version, may be <code>null</code> if optimistic transaction
-	 *         locking is not used or the entity has not yet been persisted.
-	 */
-	public Long getVersion() {
-		return version;
-	}
+  /**
+   * Sets the ID of this entity.
+   * 
+   * @param id
+   *          the ID to set.
+   */
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-	/**
-	 * Sets the version of this entity.
-	 * 
-	 * @param version
-	 *            the version to set.
-	 */
-	public void setVersion(Long version) {
-		this.version = version;
-	}
+  /**
+   * Sets the version of this entity.
+   * 
+   * @param version
+   *          the version to set.
+   */
+  public void setVersion(Long version) {
+    this.version = version;
+  }
 }

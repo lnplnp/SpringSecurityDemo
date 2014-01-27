@@ -62,161 +62,159 @@ import com.vaadin.terminal.gwt.server.AbstractApplicationServlet;
  */
 public class SpringApplicationServlet extends AbstractApplicationServlet {
 
-	private static final long serialVersionUID = 9119643883315827366L;
+  private static final long serialVersionUID = 9119643883315827366L;
 
-	/**
-	 * Protected Apache Commons Log for logging stuff.
-	 */
-	protected transient final Log logger = LogFactory.getLog(getClass());
+  /**
+   * Protected Apache Commons Log for logging stuff.
+   */
+  protected transient final Log logger = LogFactory.getLog(getClass());
 
-	private transient WebApplicationContext applicationContext;
+  private transient WebApplicationContext applicationContext;
 
-	private Class<? extends Application> applicationClass;
+  private Class<? extends Application> applicationClass;
 
-	private String applicationBean;
+  private String applicationBean;
 
-	private transient LocaleResolver localeResolver;
+  private transient LocaleResolver localeResolver;
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public void init(ServletConfig servletConfig) throws ServletException {
-		super.init(servletConfig);
-		/*
-		 * Look up the name of the Vaadin application bean. The bean should be
-		 * either a prototype or have session scope.
-		 */
-		applicationBean = servletConfig.getInitParameter("applicationBean");
-		if (applicationBean == null) {
-			if (logger.isErrorEnabled()) {
-				logger
-						.error("ApplicationBean not specified in servlet parameters");
-			}
-			throw new ServletException(
-					"ApplicationBean not specified in servlet parameters");
-		}
+  @Override
+  protected Class<? extends Application> getApplicationClass()
+      throws ClassNotFoundException {
+    return applicationClass;
+  }
 
-		if (logger.isInfoEnabled()) {
-			logger.info("Using applicationBean '" + applicationBean + "'");
-		}
+  @Override
+  protected Application getNewApplication(HttpServletRequest request)
+      throws ServletException {
+    /*
+     * AS the application bean should be defined either as a prototype or a
+     * sessions scoped bean, this call should always return a new application
+     * instance.
+     */
+    return (Application) applicationContext.getBean(applicationBean);
+  }
 
-		/*
-		 * Fetch the Spring web application context
-		 */
-		applicationContext = WebApplicationContextUtils
-				.getWebApplicationContext(servletConfig.getServletContext());
+  @SuppressWarnings("unchecked")
+  @Override
+  public void init(ServletConfig servletConfig) throws ServletException {
+    super.init(servletConfig);
+    /*
+     * Look up the name of the Vaadin application bean. The bean should be
+     * either a prototype or have session scope.
+     */
+    applicationBean = servletConfig.getInitParameter("applicationBean");
+    if (applicationBean == null) {
+      if (logger.isErrorEnabled()) {
+        logger.error("ApplicationBean not specified in servlet parameters");
+      }
+      throw new ServletException(
+          "ApplicationBean not specified in servlet parameters");
+    }
 
-		if (applicationContext.isSingleton(applicationBean)) {
-			if (logger.isErrorEnabled()) {
-				logger.error("ApplicationBean must not be a singleton");
-			}
-			throw new ServletException("ApplicationBean must not be a singleton");
-		}
-		if (!applicationContext.isPrototype(applicationBean) && logger.isWarnEnabled()) {
-			logger.warn("ApplicationBean is not a prototype");
-		}
-		
-		/*
-		 * Get the application class from the application context
-		 */
-		applicationClass = (Class<? extends Application>) applicationContext
-				.getType(applicationBean);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Vaadin application class is [" + applicationClass
-					+ "]");
-		}
-		/*
-		 * Initialize the locale resolver
-		 */
-		initLocaleResolver(applicationContext);
-	}
+    if (logger.isInfoEnabled()) {
+      logger.info("Using applicationBean '" + applicationBean + "'");
+    }
 
-	private void initLocaleResolver(ApplicationContext context) {
-		try {
-			/*
-			 * Try to look up the locale resolver from the application context
-			 */
-			localeResolver = context.getBean(
-					DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME,
-					LocaleResolver.class);
-			if (logger.isInfoEnabled()) {
-				logger.info("Using LocaleResolver [" + localeResolver + "]");
-			}
-		} catch (NoSuchBeanDefinitionException e) {
-			/*
-			 * No locale resolver was defined in the application context, so we
-			 * create a default one.
-			 */
-			localeResolver = new SessionLocaleResolver();
-			if (logger.isWarnEnabled()) {
-				logger.warn("Unable to locate LocaleResolver with name '"
-						+ DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME
-						+ "', using default [" + localeResolver + "]");
-			}
-		}
-	}
+    /*
+     * Fetch the Spring web application context
+     */
+    applicationContext = WebApplicationContextUtils
+        .getWebApplicationContext(servletConfig.getServletContext());
 
-	@Override
-	protected void service(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		/*
-		 * Resolve the locale from the request
-		 */
-		final Locale locale = localeResolver.resolveLocale(request);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Resolved locale [" + locale + "]");
-		}
+    if (applicationContext.isSingleton(applicationBean)) {
+      if (logger.isErrorEnabled()) {
+        logger.error("ApplicationBean must not be a singleton");
+      }
+      throw new ServletException("ApplicationBean must not be a singleton");
+    }
+    if (!applicationContext.isPrototype(applicationBean)
+        && logger.isWarnEnabled()) {
+      logger.warn("ApplicationBean is not a prototype");
+    }
 
-		/*
-		 * Store the locale in the LocaleContextHolder, making it available to
-		 * Spring.
-		 */
-		LocaleContextHolder.setLocale(locale);
-		ServletRequestAttributes requestAttributes = new ServletRequestAttributes(
-				request);
-		RequestContextHolder.setRequestAttributes(requestAttributes);
-		try {
-			/*
-			 * We need to override the request to return the locale resolved by
-			 * Spring.
-			 */
-			super.service(new HttpServletRequestWrapper(request) {
-				@Override
-				public Locale getLocale() {
-					return locale;
-				}
-			}, response);
-		} finally {
-			if (!locale.equals(LocaleContextHolder.getLocale())) {
-				/*
-				 * The locale in LocaleContextHolder was changed during the
-				 * request, so we have to update the resolver.
-				 */
-				if (logger.isDebugEnabled()) {
-					logger.debug("Locale changed, updating locale resolver");
-				}
-				localeResolver.setLocale(request, response, LocaleContextHolder
-						.getLocale());
-			}
-			LocaleContextHolder.resetLocaleContext();
-			RequestContextHolder.resetRequestAttributes();
-		}
-	}
+    /*
+     * Get the application class from the application context
+     */
+    applicationClass = (Class<? extends Application>) applicationContext
+        .getType(applicationBean);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Vaadin application class is [" + applicationClass + "]");
+    }
+    /*
+     * Initialize the locale resolver
+     */
+    initLocaleResolver(applicationContext);
+  }
 
-	@Override
-	protected Class<? extends Application> getApplicationClass()
-			throws ClassNotFoundException {
-		return applicationClass;
-	}
+  private void initLocaleResolver(ApplicationContext context) {
+    try {
+      /*
+       * Try to look up the locale resolver from the application context
+       */
+      localeResolver = context.getBean(
+          DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME, LocaleResolver.class);
+      if (logger.isInfoEnabled()) {
+        logger.info("Using LocaleResolver [" + localeResolver + "]");
+      }
+    } catch (NoSuchBeanDefinitionException e) {
+      /*
+       * No locale resolver was defined in the application context, so we create
+       * a default one.
+       */
+      localeResolver = new SessionLocaleResolver();
+      if (logger.isWarnEnabled()) {
+        logger.warn("Unable to locate LocaleResolver with name '"
+            + DispatcherServlet.LOCALE_RESOLVER_BEAN_NAME
+            + "', using default [" + localeResolver + "]");
+      }
+    }
+  }
 
-	@Override
-	protected Application getNewApplication(HttpServletRequest request)
-			throws ServletException {
-		/*
-		 * AS the application bean should be defined either as a prototype or a
-		 * sessions scoped bean, this call should always return a new
-		 * application instance.
-		 */
-		return (Application) applicationContext.getBean(applicationBean);
-	}
+  @Override
+  protected void service(HttpServletRequest request,
+      HttpServletResponse response) throws ServletException, IOException {
+    /*
+     * Resolve the locale from the request
+     */
+    final Locale locale = localeResolver.resolveLocale(request);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Resolved locale [" + locale + "]");
+    }
+
+    /*
+     * Store the locale in the LocaleContextHolder, making it available to
+     * Spring.
+     */
+    LocaleContextHolder.setLocale(locale);
+    ServletRequestAttributes requestAttributes = new ServletRequestAttributes(
+        request);
+    RequestContextHolder.setRequestAttributes(requestAttributes);
+    try {
+      /*
+       * We need to override the request to return the locale resolved by
+       * Spring.
+       */
+      super.service(new HttpServletRequestWrapper(request) {
+        @Override
+        public Locale getLocale() {
+          return locale;
+        }
+      }, response);
+    } finally {
+      if (!locale.equals(LocaleContextHolder.getLocale())) {
+        /*
+         * The locale in LocaleContextHolder was changed during the request, so
+         * we have to update the resolver.
+         */
+        if (logger.isDebugEnabled()) {
+          logger.debug("Locale changed, updating locale resolver");
+        }
+        localeResolver.setLocale(request, response,
+            LocaleContextHolder.getLocale());
+      }
+      LocaleContextHolder.resetLocaleContext();
+      RequestContextHolder.resetRequestAttributes();
+    }
+  }
 
 }

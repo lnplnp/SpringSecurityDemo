@@ -32,89 +32,87 @@ import com.vaadin.ui.Window.Notification;
  */
 public class ExceptionUtils {
 
-	/**
-	 * Apache Commons logger for logging stuff.
-	 */
-	protected static final Log logger = LogFactory.getLog(ExceptionUtils.class);
+  /**
+   * Apache Commons logger for logging stuff.
+   */
+  protected static final Log logger = LogFactory.getLog(ExceptionUtils.class);
 
-	/**
-	 * Shows a message to the user that access has been deined.
-	 * 
-	 * @param window
-	 *            the window in which the notification should be shown.
-	 * @param exception
-	 *            the exception to handle.
-	 * @param message
-	 *            the message to show to the user.
-	 */
-	public static void handleException(Window window,
-			AccessDeniedException exception, String message) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling exception", exception);
-		}
-		window.showNotification(((SpringSecurityDemoApp) window
-				.getApplication()).getMessage("common.accessDenied.title"),
-				message, Notification.TYPE_WARNING_MESSAGE);
-	}
+  /**
+   * Shows a message to the user that access has been deined.
+   * 
+   * @param window
+   *          the window in which the notification should be shown.
+   * @param exception
+   *          the exception to handle.
+   * @param message
+   *          the message to show to the user.
+   */
+  public static void handleException(Window window,
+      AccessDeniedException exception, String message) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Handling exception", exception);
+    }
+    window.showNotification(((SpringSecurityDemoApp) window.getApplication())
+        .getMessage("common.accessDenied.title"), message,
+        Notification.TYPE_WARNING_MESSAGE);
+  }
 
-	/**
-	 * Shows a message to the user that an optimistic failure has occurred.
-	 * 
-	 * @param window
-	 *            the window in which the notification should be shown.
-	 * @param exception
-	 *            the exception to handle.
-	 * @param message
-	 *            the message to show to the user.
-	 */
-	public static void handleException(Window window,
-			OptimisticLockingFailureException exception, String message) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling exception", exception);
-		}
-		window.showNotification(((SpringSecurityDemoApp) window
-				.getApplication()).getMessage("common.optLockFail.title"),
-				message, Notification.TYPE_WARNING_MESSAGE);
-	}
+  /**
+   * Shows a message to the user that a data integrity violation has occurred.
+   * 
+   * @param window
+   *          the window in which the notification should be shown.
+   * @param exception
+   *          the exception to handle.
+   * @param message
+   *          the message to show to the user.
+   */
+  public static void handleException(Window window,
+      DataIntegrityViolationException exception, String message) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Handling exception", exception);
+    }
+    window.showNotification(((SpringSecurityDemoApp) window.getApplication())
+        .getMessage("common.dataIntegrityViolation.title"), message,
+        Notification.TYPE_WARNING_MESSAGE);
+  }
 
-	/**
-	 * Shows a message to the user that an unexpected error has occurred.
-	 * 
-	 * @param window
-	 *            the window in which the notification should be shown.
-	 * @param exception
-	 *            the exception to handle.
-	 */
-	public static void handleException(Window window, Exception exception) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling exception", exception);
-		}
-		SpringSecurityDemoApp app = (SpringSecurityDemoApp) window
-				.getApplication();
-		window.showNotification(app
-				.getMessage("common.unexpectedException.title"), app
-				.getMessage("common.unexpectedException.descr", exception
-						.getMessage()), Notification.TYPE_ERROR_MESSAGE);
-	}
+  /**
+   * Shows a message to the user that an unexpected error has occurred.
+   * 
+   * @param window
+   *          the window in which the notification should be shown.
+   * @param exception
+   *          the exception to handle.
+   */
+  public static void handleException(Window window, Exception exception) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Handling exception", exception);
+    }
+    SpringSecurityDemoApp app = (SpringSecurityDemoApp) window.getApplication();
+    window.showNotification(
+        app.getMessage("common.unexpectedException.title"),
+        app.getMessage("common.unexpectedException.descr",
+            exception.getMessage()), Notification.TYPE_ERROR_MESSAGE);
+  }
 
-	/**
-	 * Shows a message to the user that a data integrity violation has occurred.
-	 * 
-	 * @param window
-	 *            the window in which the notification should be shown.
-	 * @param exception
-	 *            the exception to handle.
-	 * @param message
-	 *            the message to show to the user.
-	 */
-	public static void handleException(Window window,
-			DataIntegrityViolationException exception, String message) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling exception", exception);
-		}
-		window.showNotification(((SpringSecurityDemoApp) window
-				.getApplication())
-				.getMessage("common.dataIntegrityViolation.title"), message,
-				Notification.TYPE_WARNING_MESSAGE);
-	}
+  /**
+   * Shows a message to the user that an optimistic failure has occurred.
+   * 
+   * @param window
+   *          the window in which the notification should be shown.
+   * @param exception
+   *          the exception to handle.
+   * @param message
+   *          the message to show to the user.
+   */
+  public static void handleException(Window window,
+      OptimisticLockingFailureException exception, String message) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Handling exception", exception);
+    }
+    window.showNotification(((SpringSecurityDemoApp) window.getApplication())
+        .getMessage("common.optLockFail.title"), message,
+        Notification.TYPE_WARNING_MESSAGE);
+  }
 }

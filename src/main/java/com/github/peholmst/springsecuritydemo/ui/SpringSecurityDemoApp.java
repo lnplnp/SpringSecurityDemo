@@ -36,8 +36,8 @@ import com.github.peholmst.springsecuritydemo.VersionInfo;
 import com.github.peholmst.springsecuritydemo.services.CategoryService;
 import com.vaadin.Application;
 import com.vaadin.service.ApplicationContext.TransactionListener;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.Component.Event;
+import com.vaadin.ui.Window;
 
 /**
  * Main Vaadin application class for this demo. When first initialized, the
@@ -60,185 +60,182 @@ import com.vaadin.ui.Component.Event;
 @Component("applicationBean")
 @Scope("prototype")
 public class SpringSecurityDemoApp extends Application implements I18nProvider,
-		TransactionListener {
+    TransactionListener {
 
-	private static final long serialVersionUID = -1412284137848857188L;
+  private static final long serialVersionUID = -1412284137848857188L;
 
-	/**
-	 * Apache Commons logger for logging stuff.
-	 */
-	protected final Log logger = LogFactory.getLog(getClass());
+  /**
+   * Apache Commons logger for logging stuff.
+   */
+  protected final Log logger = LogFactory.getLog(getClass());
 
-	@Resource
-	private MessageSource messages;
+  @Resource
+  private MessageSource messages;
 
-	@Resource
-	private AuthenticationManager authenticationManager;
+  @Resource
+  private AuthenticationManager authenticationManager;
 
-	@Resource
-	private CategoryService categoryService;
+  @Resource
+  private CategoryService categoryService;
 
-	private LoginView loginView;
+  private LoginView loginView;
 
-	private MainView mainView;
+  private MainView mainView;
 
-	private static final Locale[] SUPPORTED_LOCALES = { Locale.US,
-			new Locale("fi", "FI"), new Locale("sv", "SE") };
+  private static final Locale[] SUPPORTED_LOCALES = { Locale.US,
+      new Locale("fi", "FI"), new Locale("sv", "SE") };
 
-	private static final String[] LOCALE_NAMES = { "English", "Suomi",
-			"Svenska" };
+  private static final String[] LOCALE_NAMES = { "English", "Suomi", "Svenska" };
 
-	@Override
-	public Locale getLocale() {
-		/*
-		 * Fetch the locale resolved by Spring in the application servlet
-		 */
-		return LocaleContextHolder.getLocale();
-	}
+  @Override
+  @PreDestroy
+  // In case the application is destroyed by the container
+  public void close() {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Closing application [" + this + "]");
+    }
+    // Clear the authentication property to log the user out
+    setUser(null);
+    // Also clear the security context
+    SecurityContextHolder.clearContext();
+    getContext().removeTransactionListener(this);
+    super.close();
+  }
 
-	@Override
-	public void setLocale(Locale locale) {
-		LocaleContextHolder.setLocale(locale);
-	}
+  @Override
+  protected void finalize() throws Throwable {
+    if (logger.isDebugEnabled()) {
+      /*
+       * This is included to make sure that closed applications get properly
+       * garbage collected.
+       */
+      logger.debug("Garbage collecting application [" + this + "]");
+    }
+    super.finalize();
+  }
 
-	@SuppressWarnings("serial")
-	@Override
-	public void init() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Initializing application [" + this + "]");
-		}
-		// Register listener
-		getContext().addTransactionListener(this);
+  @Override
+  public Locale getLocale() {
+    /*
+     * Fetch the locale resolved by Spring in the application servlet
+     */
+    return LocaleContextHolder.getLocale();
+  }
 
-		// Create the views
-		loginView = new LoginView(this, authenticationManager);
-		loginView.setSizeFull();
+  @Override
+  public String getLocaleDisplayName(Locale locale) {
+    for (int i = 0; i < SUPPORTED_LOCALES.length; i++) {
+      if (locale.equals(SUPPORTED_LOCALES[i])) {
+        return LOCALE_NAMES[i];
+      }
+    }
+    return "Unsupported Locale";
+  }
 
-		setTheme("SpringSecurityDemo"); // We use a custom theme
+  @Override
+  public String getMessage(String code, Object... args)
+      throws NoSuchMessageException {
+    return messages.getMessage(code, args, getLocale());
+  }
 
-		final Window loginWindow = new Window(getMessage("app.title",
-			getVersion()), loginView);
-		setMainWindow(loginWindow);
+  @Override
+  public Locale[] getSupportedLocales() {
+    return SUPPORTED_LOCALES;
+  }
 
-		loginView.addListener(new com.vaadin.ui.Component.Listener() {
-			@Override
-			public void componentEvent(Event event) {
-				if (event instanceof LoginView.LoginEvent) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("User logged on ["
-								+ ((LoginView.LoginEvent) event)
-									.getAuthentication() + "]");
-					}
-					/*
-					 * A user has logged on, which means we can ditch the login
-					 * view and open the main view instead. We also have to
-					 * update the security context holder.
-					 */
-					setUser(((LoginView.LoginEvent) event).getAuthentication());
-					SecurityContextHolder.getContext().setAuthentication(
-						((LoginView.LoginEvent) event).getAuthentication());
-					removeWindow(loginWindow);
-					loginView = null;
-					mainView = new MainView(SpringSecurityDemoApp.this,
-						categoryService);
-					mainView.setSizeFull();
-					setMainWindow(new Window(getMessage("app.title",
-						getVersion()), mainView));
-				}
-			}
-		});
-	}
+  /**
+   * Gets the currently logged in user. If this value is <code>null</code>, no
+   * user has been logged in yet.
+   * 
+   * @return an {@link Authentication} instance.
+   */
+  @Override
+  public Authentication getUser() {
+    return (Authentication) super.getUser();
+  }
 
-	@Override
-	@PreDestroy
-	// In case the application is destroyed by the container
-	public void close() {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Closing application [" + this + "]");
-		}
-		// Clear the authentication property to log the user out
-		setUser(null);
-		// Also clear the security context
-		SecurityContextHolder.clearContext();
-		getContext().removeTransactionListener(this);
-		super.close();
-	}
+  @Override
+  public String getVersion() {
+    return VersionInfo.getApplicationVersion();
+  }
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (logger.isDebugEnabled()) {
-			/*
-			 * This is included to make sure that closed applications get
-			 * properly garbage collected.
-			 */
-			logger.debug("Garbage collecting application [" + this + "]");
-		}
-		super.finalize();
-	}
+  @SuppressWarnings("serial")
+  @Override
+  public void init() {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Initializing application [" + this + "]");
+    }
+    // Register listener
+    getContext().addTransactionListener(this);
 
-	@Override
-	public void transactionEnd(Application application, Object transactionData) {
-		if (logger.isDebugEnabled()) {
-			logger
-				.debug("Transaction ended, removing authentication data from security context");
-		}
-		/*
-		 * The purpose of this
-		 */
-		SecurityContextHolder.getContext().setAuthentication(null);
-	}
+    // Create the views
+    loginView = new LoginView(this, authenticationManager);
+    loginView.setSizeFull();
 
-	@Override
-	public void transactionStart(Application application, Object transactionData) {
-		if (logger.isDebugEnabled()) {
-			logger
-				.debug("Transaction started, setting authentication data of security context to ["
-						+ application.getUser() + "]");
-		}
-		/*
-		 * The security context holder uses the thread local pattern to store
-		 * its authentication credentials. As requests may be handled by
-		 * different threads, we have to update the security context holder in
-		 * the beginning of each transaction.
-		 */
-		SecurityContextHolder.getContext().setAuthentication(
-			(Authentication) application.getUser());
-	}
+    setTheme("SpringSecurityDemo"); // We use a custom theme
 
-	/**
-	 * Gets the currently logged in user. If this value is <code>null</code>, no
-	 * user has been logged in yet.
-	 * 
-	 * @return an {@link Authentication} instance.
-	 */
-	@Override
-	public Authentication getUser() {
-		return (Authentication) super.getUser();
-	}
+    final Window loginWindow = new Window(
+        getMessage("app.title", getVersion()), loginView);
+    setMainWindow(loginWindow);
 
-	@Override
-	public String getVersion() {
-		return VersionInfo.getApplicationVersion();
-	}
+    loginView.addListener(new com.vaadin.ui.Component.Listener() {
+      @Override
+      public void componentEvent(Event event) {
+        if (event instanceof LoginView.LoginEvent) {
+          if (logger.isDebugEnabled()) {
+            logger.debug("User logged on ["
+                + ((LoginView.LoginEvent) event).getAuthentication() + "]");
+          }
+          /*
+           * A user has logged on, which means we can ditch the login view and
+           * open the main view instead. We also have to update the security
+           * context holder.
+           */
+          setUser(((LoginView.LoginEvent) event).getAuthentication());
+          SecurityContextHolder.getContext().setAuthentication(
+              ((LoginView.LoginEvent) event).getAuthentication());
+          removeWindow(loginWindow);
+          loginView = null;
+          mainView = new MainView(SpringSecurityDemoApp.this, categoryService);
+          mainView.setSizeFull();
+          setMainWindow(new Window(getMessage("app.title", getVersion()),
+              mainView));
+        }
+      }
+    });
+  }
 
-	@Override
-	public String getMessage(String code, Object... args)
-			throws NoSuchMessageException {
-		return messages.getMessage(code, args, getLocale());
-	}
+  @Override
+  public void setLocale(Locale locale) {
+    LocaleContextHolder.setLocale(locale);
+  }
 
-	@Override
-	public Locale[] getSupportedLocales() {
-		return SUPPORTED_LOCALES;
-	}
+  @Override
+  public void transactionEnd(Application application, Object transactionData) {
+    if (logger.isDebugEnabled()) {
+      logger
+          .debug("Transaction ended, removing authentication data from security context");
+    }
+    /*
+     * The purpose of this
+     */
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
-	@Override
-	public String getLocaleDisplayName(Locale locale) {
-		for (int i = 0; i < SUPPORTED_LOCALES.length; i++) {
-			if (locale.equals(SUPPORTED_LOCALES[i])) {
-				return LOCALE_NAMES[i];
-			}
-		}
-		return "Unsupported Locale";
-	}
+  @Override
+  public void transactionStart(Application application, Object transactionData) {
+    if (logger.isDebugEnabled()) {
+      logger
+          .debug("Transaction started, setting authentication data of security context to ["
+              + application.getUser() + "]");
+    }
+    /*
+     * The security context holder uses the thread local pattern to store its
+     * authentication credentials. As requests may be handled by different
+     * threads, we have to update the security context holder in the beginning
+     * of each transaction.
+     */
+    SecurityContextHolder.getContext().setAuthentication(
+        (Authentication) application.getUser());
+  }
 }

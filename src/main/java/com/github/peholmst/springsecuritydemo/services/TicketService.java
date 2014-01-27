@@ -17,7 +17,7 @@ package com.github.peholmst.springsecuritydemo.services;
 
 /**
  * @author petter
- *
+ * 
  */
 public interface TicketService {
 

@@ -33,153 +33,159 @@ import com.github.peholmst.springsecuritydemo.services.CategoryService;
  */
 @SuppressWarnings("serial")
 public class CategoryServiceStub implements CategoryService {
-	
-	static class CategoryEntry {
-		final Category category;
-		final LinkedList<Category> children = new LinkedList<Category>();
 
-		public CategoryEntry(Category category) {
-			this.category = category;
-		}
-	}
-	
-	protected long nextId = 1;
+  static class CategoryEntry {
+    final Category category;
+    final LinkedList<Category> children = new LinkedList<Category>();
 
-	HashMap<Long, CategoryEntry> categories = new HashMap<Long, CategoryEntry>();
-	// We need this map to be able to detect if the parent has changed when a
-	// Category is saved.
-	HashMap<Long, Category> categoryToParentMap = new HashMap<Long, Category>();
+    public CategoryEntry(Category category) {
+      this.category = category;
+    }
+  }
 
-	static Category NULL_CATEGORY = new Category() {
-		@Override
-		public String getName() {
-			return "NULL";
-		}
-		public Long getId() {
-			return 0l;
-		};
-		public boolean equals(Object obj) {
-			if (obj == null) {
-				return false;
-			}
-			return obj.getClass() == getClass();
-		};
-		public int hashCode() {
-			return getClass().hashCode();
-		};
-	};
+  protected long nextId = 1;
 
-	public CategoryServiceStub() {
-		categories.put(NULL_CATEGORY.getId(), new CategoryEntry(NULL_CATEGORY));
-	}
-	
-	@Override
-	public void deleteCategory(Category category) {
-		// Lookup entry from map
-		CategoryEntry entry = categories.get(category.getId());
-		if (entry != null) {
-			CategoryEntry newParentEntry = null;
-			if (category.getParent() != null) {
-				newParentEntry = categories.get(category.getParent().getId());
-			} else {
-				newParentEntry = categories.get(NULL_CATEGORY.getId());
-			}
-			// Move all children to new parent
-			for (Category child : entry.children) {
-				child.setParent(category.getParent());
-				newParentEntry.children.add(child);
-				categoryToParentMap.put(child.getId(), newParentEntry.category);
-			}
-			if (category.getParent() == null) {
-				categories.get(NULL_CATEGORY.getId()).children.remove(category);
-			} else {
-				categories.get(category.getParent().getId()).children.remove(category);
-			}
-			categories.remove(category.getId());
-			categoryToParentMap.remove(category.getId());
-		}
-	}
+  HashMap<Long, CategoryEntry> categories = new HashMap<Long, CategoryEntry>();
+  // We need this map to be able to detect if the parent has changed when a
+  // Category is saved.
+  HashMap<Long, Category> categoryToParentMap = new HashMap<Long, Category>();
 
-	@Override
-	public List<Category> getChildren(Category parent) {
-		// Lookup entry from map
-		CategoryEntry entry = categories.get(parent.getId());
-		if (entry == null) {
-			return null; // Parent not found
-		} else {
-			return Collections.unmodifiableList(entry.children);
-		}
-	}
+  static Category NULL_CATEGORY = new Category() {
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      return obj.getClass() == getClass();
+    }
 
-	@Override
-	public List<Category> getRootCategories() {
-		// Lookup entry from map
-		CategoryEntry entry = categories.get(NULL_CATEGORY.getId());
-		return Collections.unmodifiableList(entry.children);
-	}
-	
-	@Override
-	public Category insertCategory(Category category) {
-		if (category.getId() != null && categories.containsKey(category.getId())) {
-			throw new IllegalStateException("Category already exists");
-		}
-		// Check that parent property points to a valid category
-		if (category.getParent() != null
-				&& !categories.containsKey(category.getParent().getId())) {
-			throw new IllegalArgumentException("Invalid parent property");
-		}		
-		
-		// Generate ID and save in map
-		category.setId(nextId++);
-		CategoryEntry entry = new CategoryEntry(category);
-		categories.put(category.getId(), entry);
-		
-		// Update parent index
-		Category parent = category.getParent();
-		if (parent == null) {
-			parent = NULL_CATEGORY;
-		}
-		
-		categories.get(parent.getId()).children.add(category);
-		categoryToParentMap.put(category.getId(), parent);
-		
-		return category;
-	}
-	
-	@Override
-	public Category updateCategory(Category category) {
-		if (category.getId() == null || !categories.containsKey(category.getId())) {
-			throw new DataRetrievalFailureException("Category could not be found");
-		}
-		// Check that parent property points to a valid category
-		if (category.getParent() != null
-				&& !categories.containsKey(category.getParent().getId())) {
-			throw new IllegalArgumentException("Invalid parent property");
-		}
+    @Override
+    public Long getId() {
+      return 0l;
+    };
 
-		Category parent = category.getParent();
-		if (parent == null) {
-			parent = NULL_CATEGORY;
-		}		
-		
-		// Remove reference to old parent if the parent property has changed
-		Category oldParent = categoryToParentMap.get(category.getId());
-		if (oldParent != null && !oldParent.equals(parent)) {
-			categories.get(oldParent.getId()).children.remove(category);
-			categoryToParentMap.remove(category.getId());
-		}
+    @Override
+    public String getName() {
+      return "NULL";
+    };
 
-		// Update the parent index if the parent property has changed
-		if (!parent.equals(oldParent)) {
-			categories.get(parent.getId()).children.add(category);
-			categoryToParentMap.put(category.getId(), parent);
-		}
-		return category;	
-	}
-	
-	@Override
-	public Category getCategoryById(Long id) {
-		CategoryEntry entry = categories.get(id);
-		return entry == null ? null : entry.category;
-	}
+    @Override
+    public int hashCode() {
+      return getClass().hashCode();
+    };
+  };
+
+  public CategoryServiceStub() {
+    categories.put(NULL_CATEGORY.getId(), new CategoryEntry(NULL_CATEGORY));
+  }
+
+  @Override
+  public void deleteCategory(Category category) {
+    // Lookup entry from map
+    CategoryEntry entry = categories.get(category.getId());
+    if (entry != null) {
+      CategoryEntry newParentEntry = null;
+      if (category.getParent() != null) {
+        newParentEntry = categories.get(category.getParent().getId());
+      } else {
+        newParentEntry = categories.get(NULL_CATEGORY.getId());
+      }
+      // Move all children to new parent
+      for (Category child : entry.children) {
+        child.setParent(category.getParent());
+        newParentEntry.children.add(child);
+        categoryToParentMap.put(child.getId(), newParentEntry.category);
+      }
+      if (category.getParent() == null) {
+        categories.get(NULL_CATEGORY.getId()).children.remove(category);
+      } else {
+        categories.get(category.getParent().getId()).children.remove(category);
+      }
+      categories.remove(category.getId());
+      categoryToParentMap.remove(category.getId());
+    }
+  }
+
+  @Override
+  public Category getCategoryById(Long id) {
+    CategoryEntry entry = categories.get(id);
+    return entry == null ? null : entry.category;
+  }
+
+  @Override
+  public List<Category> getChildren(Category parent) {
+    // Lookup entry from map
+    CategoryEntry entry = categories.get(parent.getId());
+    if (entry == null) {
+      return null; // Parent not found
+    } else {
+      return Collections.unmodifiableList(entry.children);
+    }
+  }
+
+  @Override
+  public List<Category> getRootCategories() {
+    // Lookup entry from map
+    CategoryEntry entry = categories.get(NULL_CATEGORY.getId());
+    return Collections.unmodifiableList(entry.children);
+  }
+
+  @Override
+  public Category insertCategory(Category category) {
+    if (category.getId() != null && categories.containsKey(category.getId())) {
+      throw new IllegalStateException("Category already exists");
+    }
+    // Check that parent property points to a valid category
+    if (category.getParent() != null
+        && !categories.containsKey(category.getParent().getId())) {
+      throw new IllegalArgumentException("Invalid parent property");
+    }
+
+    // Generate ID and save in map
+    category.setId(nextId++);
+    CategoryEntry entry = new CategoryEntry(category);
+    categories.put(category.getId(), entry);
+
+    // Update parent index
+    Category parent = category.getParent();
+    if (parent == null) {
+      parent = NULL_CATEGORY;
+    }
+
+    categories.get(parent.getId()).children.add(category);
+    categoryToParentMap.put(category.getId(), parent);
+
+    return category;
+  }
+
+  @Override
+  public Category updateCategory(Category category) {
+    if (category.getId() == null || !categories.containsKey(category.getId())) {
+      throw new DataRetrievalFailureException("Category could not be found");
+    }
+    // Check that parent property points to a valid category
+    if (category.getParent() != null
+        && !categories.containsKey(category.getParent().getId())) {
+      throw new IllegalArgumentException("Invalid parent property");
+    }
+
+    Category parent = category.getParent();
+    if (parent == null) {
+      parent = NULL_CATEGORY;
+    }
+
+    // Remove reference to old parent if the parent property has changed
+    Category oldParent = categoryToParentMap.get(category.getId());
+    if (oldParent != null && !oldParent.equals(parent)) {
+      categories.get(oldParent.getId()).children.remove(category);
+      categoryToParentMap.remove(category.getId());
+    }
+
+    // Update the parent index if the parent property has changed
+    if (!parent.equals(oldParent)) {
+      categories.get(parent.getId()).children.add(category);
+      categoryToParentMap.put(category.getId(), parent);
+    }
+    return category;
+  }
 }

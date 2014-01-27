@@ -29,47 +29,47 @@ import com.vaadin.ui.CustomComponent;
  */
 public abstract class AbstractView extends CustomComponent {
 
-	private static final long serialVersionUID = -1275291398930837578L;
-	private final SpringSecurityDemoApp application;
-	/**
-	 * Apache Commons logger for logging stuff.
-	 */
-	protected final Log logger = LogFactory.getLog(getClass());
+  private static final long serialVersionUID = -1275291398930837578L;
+  private final SpringSecurityDemoApp application;
+  /**
+   * Apache Commons logger for logging stuff.
+   */
+  protected final Log logger = LogFactory.getLog(getClass());
 
-	/**
-	 * Creates a new <code>AbstractView</code>. Subclasses should remember to
-	 * set the composition root of the view.
-	 * 
-	 * @see #setCompositionRoot(com.vaadin.ui.Component)
-	 * @param application
-	 *            the application that owns the view (never <code>null</code>).
-	 */
-	public AbstractView(SpringSecurityDemoApp application) {
-		super();
-		assert application != null : "application must not be null";
-		this.application = application;
-	}
+  /**
+   * Creates a new <code>AbstractView</code>. Subclasses should remember to set
+   * the composition root of the view.
+   * 
+   * @see #setCompositionRoot(com.vaadin.ui.Component)
+   * @param application
+   *          the application that owns the view (never <code>null</code>).
+   */
+  public AbstractView(SpringSecurityDemoApp application) {
+    super();
+    assert application != null : "application must not be null";
+    this.application = application;
+  }
 
-	/**
-	 * Returns the {@link SpringSecurityDemoApp} that this view belongs to.
-	 * 
-	 * @return the application instance, never <code>null</code>.
-	 */
-	@Override
-	public SpringSecurityDemoApp getApplication() {
-		return application;
-	}
+  @Override
+  protected void finalize() throws Throwable {
+    if (logger.isDebugEnabled()) {
+      /*
+       * I included this because I wanted to see when views are garbage
+       * collected.
+       */
+      logger.debug("Garbage collecting view [" + this + "] owned by ["
+          + application + "]");
+    }
+    super.finalize();
+  }
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (logger.isDebugEnabled()) {
-			/*
-			 * I included this because I wanted to see when views are garbage
-			 * collected.
-			 */
-			logger.debug("Garbage collecting view [" + this + "] owned by ["
-					+ application + "]");
-		}
-		super.finalize();
-	}
+  /**
+   * Returns the {@link SpringSecurityDemoApp} that this view belongs to.
+   * 
+   * @return the application instance, never <code>null</code>.
+   */
+  @Override
+  public SpringSecurityDemoApp getApplication() {
+    return application;
+  }
 }

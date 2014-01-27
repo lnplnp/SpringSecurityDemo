@@ -30,84 +30,83 @@ import com.github.peholmst.springsecuritydemo.domain.Category;
  */
 public interface CategoryService {
 
-	// TODO add & document security annotations
+  // TODO add & document security annotations
 
-	/**
-	 * Gets all root categories, i.e. categories that do not have parents (
-	 * {@link Category#getParent()} returns <code>null</code>).
-	 * 
-	 * @return an unmodifiable list containing all the root categories (never
-	 *         <code>null</code>).
-	 */
-	@PreAuthorize("hasRole('ROLE_USER')")
-	public List<Category> getRootCategories();
+  /**
+   * Deletes <code>category</code>. If <code>category</code> has children, they
+   * are adopted by the parent of <code>category</code>. If
+   * <code>category</code> is a root and has children, they will become new
+   * roots. If <code>category</code> cannot be found, nothing happens.
+   * 
+   * @param category
+   *          the category to delete (must not be <code>null</code>).
+   * @throws OptimisticLockingFailureException
+   *           if the category has been altered by another user after it was
+   *           retrieved from the database.
+   */
+  @PreAuthorize("hasRole('ROLE_ADMIN')")
+  public void deleteCategory(Category category)
+      throws OptimisticLockingFailureException;
 
-	/**
-	 * Gets all the children of <code>parent</code>.
-	 * 
-	 * @param parent
-	 *            the parent whose children should be fetched (must not be
-	 *            <code>null</code>).
-	 * @return an unmodifiable list containing all the children of
-	 *         <code>parent</code>, or <code>null</code> if <code>parent</code>
-	 *         could not be found.
-	 */
-	@PreAuthorize("hasRole('ROLE_USER')")
-	public List<Category> getChildren(Category parent);
+  /**
+   * Gets the category identified by <code>id</code>.
+   * 
+   * @param id
+   *          the id of the category (must not be <code>null</code>).
+   * @return the category, or <code>null</code> if not found.
+   */
+  @PreAuthorize("hasRole('ROLE_USER')")
+  public Category getCategoryById(Long id);
 
-	/**
-	 * Updates <code>category</code> in the database.
-	 * 
-	 * @param category
-	 *            the category to update (must not be <code>null</code>).
-	 * @return the updated Category instance (never <code>null</code>).
-	 * @throws DataRetrievalFailureException
-	 *             if the category was not found in the database.
-	 * @throws OptimisticLockingFailureException
-	 *             if the category has been altered by another user after it was
-	 *             retrieved from the database.
-	 */
-	@PreAuthorize("hasRole('ROLE_USER')")
-	public Category updateCategory(Category category)
-			throws DataRetrievalFailureException,
-			OptimisticLockingFailureException;
+  /**
+   * Gets all the children of <code>parent</code>.
+   * 
+   * @param parent
+   *          the parent whose children should be fetched (must not be
+   *          <code>null</code>).
+   * @return an unmodifiable list containing all the children of
+   *         <code>parent</code>, or <code>null</code> if <code>parent</code>
+   *         could not be found.
+   */
+  @PreAuthorize("hasRole('ROLE_USER')")
+  public List<Category> getChildren(Category parent);
 
-	/**
-	 * Inserts <code>category</code> into the database.
-	 * 
-	 * @param category
-	 *            the category to insert (must not be <code>null</code>).
-	 * @return the inserted Category instance (never <code>null</code>).
-	 * @throws IllegalStateException
-	 *             if the category already exists in the database.
-	 */
-	@PreAuthorize("hasRole('ROLE_USER')")
-	public Category insertCategory(Category category)
-			throws IllegalStateException;
+  /**
+   * Gets all root categories, i.e. categories that do not have parents (
+   * {@link Category#getParent()} returns <code>null</code>).
+   * 
+   * @return an unmodifiable list containing all the root categories (never
+   *         <code>null</code>).
+   */
+  @PreAuthorize("hasRole('ROLE_USER')")
+  public List<Category> getRootCategories();
 
-	/**
-	 * Deletes <code>category</code>. If <code>category</code> has children,
-	 * they are adopted by the parent of <code>category</code>. If
-	 * <code>category</code> is a root and has children, they will become new
-	 * roots. If <code>category</code> cannot be found, nothing happens.
-	 * 
-	 * @param category
-	 *            the category to delete (must not be <code>null</code>).
-	 * @throws OptimisticLockingFailureException
-	 *             if the category has been altered by another user after it was
-	 *             retrieved from the database.
-	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public void deleteCategory(Category category)
-			throws OptimisticLockingFailureException;
+  /**
+   * Inserts <code>category</code> into the database.
+   * 
+   * @param category
+   *          the category to insert (must not be <code>null</code>).
+   * @return the inserted Category instance (never <code>null</code>).
+   * @throws IllegalStateException
+   *           if the category already exists in the database.
+   */
+  @PreAuthorize("hasRole('ROLE_USER')")
+  public Category insertCategory(Category category)
+      throws IllegalStateException;
 
-	/**
-	 * Gets the category identified by <code>id</code>.
-	 * 
-	 * @param id
-	 *            the id of the category (must not be <code>null</code>).
-	 * @return the category, or <code>null</code> if not found.
-	 */
-	@PreAuthorize("hasRole('ROLE_USER')")
-	public Category getCategoryById(Long id);
+  /**
+   * Updates <code>category</code> in the database.
+   * 
+   * @param category
+   *          the category to update (must not be <code>null</code>).
+   * @return the updated Category instance (never <code>null</code>).
+   * @throws DataRetrievalFailureException
+   *           if the category was not found in the database.
+   * @throws OptimisticLockingFailureException
+   *           if the category has been altered by another user after it was
+   *           retrieved from the database.
+   */
+  @PreAuthorize("hasRole('ROLE_USER')")
+  public Category updateCategory(Category category)
+      throws DataRetrievalFailureException, OptimisticLockingFailureException;
 }
